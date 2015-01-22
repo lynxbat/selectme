@@ -2,53 +2,39 @@ package main
 
 import (
 	"fmt"
-	"time"
 )
 
 func main() {
-	c1 := make(chan time.Time)
-	c2 := make(chan time.Time)
+	c1 := make(chan int)
+	c2 := make(chan int)
 
+	i := 0
 	go func() {
 		for {
-			time.Sleep(time.Nanosecond * 2)
-			c1 <- time.Now()
+			i++
+			if i%2 == 0 {
+				go func() { c2 <- i }()
+			} else {
+				go func() { c1 <- i }()
+			}
 		}
 	}()
 
-	go func() {
-		for {
-			time.Sleep(time.Nanosecond * 2)
-			c2 <- time.Now()
-		}
-	}()
-
-	x := 0
-	t := time.Now()
-	y := t
-	for x < 10000 {
+	last := 0
+	for {
 		select {
 		case tt := <-c1:
-			y = t
-			t = tt
-			d := t.Sub(y)
-			if d.Nanoseconds() < 0 {
-				fmt.Print("-")
-				panic("!")
-			} else {
-				fmt.Print("+")
+			if tt < last {
+				fmt.Println(tt)
+				return
 			}
+			last = tt
 		case tt := <-c2:
-			y = t
-			t = tt
-			d := t.Sub(y)
-			if d.Nanoseconds() < 0 {
-				fmt.Print("-")
-				panic("!")
-			} else {
-				fmt.Print("+")
+			if tt < last {
+				fmt.Println(tt)
+				return
 			}
+			last = tt
 		}
-
 	}
 }
