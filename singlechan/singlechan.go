@@ -11,7 +11,11 @@ func main() {
 		i := 0
 		for {
 			i++
-			go func() { c <- i }()
+			if i%2 == 0 {
+				go func() { c <- i }()
+			} else {
+				go func() { c <- i }()
+			}
 		}
 	}()
 
